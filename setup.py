@@ -45,11 +45,14 @@ for scheme in INSTALL_SCHEMES.values():
 data_files = []
 
 data_files.append(
-    ('/usr/sbin', ['sbin/kg-send-pbs-logs'])
+    ('/usr/sbin', ['sbin/kg-pbs-logger'])
 )
 
 data_files.append(
-    ('/etc/karaage', ['etc/pbs-logger.cfg'])
+    ('/etc/karaage', ['etc/pbs-logger.cfg', 'etc/logging.conf'])
+)
+data_files.append(
+    ('/etc/logrotate.d', ['logrotate.d/kg-pbs-logger'])
 )
 
 
