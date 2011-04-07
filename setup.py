@@ -58,7 +58,7 @@ data_files.append(
 
 setup(
     name = "karaage-pbs-logger",
-    version = '0.9',
+    version = '1.0',
     url = 'http://code.vpac.org/trac/karaage/',
     author = 'Sam Morrison',
     author_email = 'sam@vpac.org',
