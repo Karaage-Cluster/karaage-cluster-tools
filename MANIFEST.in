@@ -4,5 +4,6 @@ include COPYING
 include MANIFEST.in
 recursive-include sbin *
 recursive-include etc *
+recursive-include cron.d *
 recursive-include logrotate.d *
 recursive-include scripts *

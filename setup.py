@@ -55,6 +55,10 @@ data_files.append(
     ('/etc/logrotate.d', ['logrotate.d/kg-pbs-logger'])
 )
 
+data_files.append(
+    ('/etc/cron.d', ['cron.d/kg-pbs-logger'])
+)
+
 
 setup(
     name = "karaage-pbs-logger",
