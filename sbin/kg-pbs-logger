@@ -112,7 +112,9 @@ if __name__ == "__main__":
 
     if '-d' in opts:
         logger.setLevel(logging.DEBUG)
-        
+        for handler in logger.handlers:
+            handler.setLevel(logging.DEBUG)
+
     if '-A' in opts:
         file_list = os.listdir(cfg['LOG_DIR'])
 
