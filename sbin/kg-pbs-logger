@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2011 VPAC
 #
@@ -16,17 +16,33 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Karaage  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import unicode_literals
+from __future__ import print_function
 
+try:
+    # Python 3
+    import xmlrpc.client as xmlrpclib
+except ImportError:
+    # Python 2
+    import xmlrpclib
 
-import xmlrpclib
 import datetime
-import sys, os
+import sys
+import os
 import getopt
-import ConfigParser
+
+try:
+    # Python 3
+    import configparser
+except ImportError:
+    # Python 2
+    import ConfigParser as configparser
+
 import logging
 import logging.config
 
-logging.config.fileConfig("/etc/karaage/logging.conf")
+logging.config.fileConfig("/etc/karaage3/logging.conf")
 logger = logging.getLogger("pbs-logger")
 
 
@@ -37,9 +53,11 @@ def parse_logs(date, cfg):
     try:
         f = open(os.path.join(cfg['LOG_DIR'], filename), 'r')
     except IOError:
-        logger.warn('Failed to open log file %s' % os.path.join(cfg['LOG_DIR'], filename))
+        logger.warn(
+            'Failed to open log file %s'
+            % os.path.join(cfg['LOG_DIR'], filename))
         sys.exit(1)
-    
+
     raw_data = f.readlines()
     f.close()
     data = []
@@ -51,37 +69,40 @@ def parse_logs(date, cfg):
         server = xmlrpclib.Server(cfg['WS_URL'])
 
         try:
-            summary, output = server.parse_usage(cfg['WS_USERNAME'], cfg['WS_PASSWORD'], data, str(date), cfg['MACHINE_NAME'], 'PBS')
+            summary, output = server.parse_usage(
+                cfg['WS_USERNAME'], cfg['WS_PASSWORD'],
+                data, str(date), cfg['MACHINE_NAME'], 'PBS')
             logger.info(summary)
-            
+
             for line in output:
                 logger.error(line)
         except:
-            response = server.parse_usage(cfg['WS_USERNAME'], cfg['WS_PASSWORD'], data, str(date), cfg['MACHINE_NAME'], 'PBS')
+            response = server.parse_usage(
+                cfg['WS_USERNAME'], cfg['WS_PASSWORD'],
+                data, str(date), cfg['MACHINE_NAME'], 'PBS')
             logger.error(response)
-            
-    
+
+
 def print_help():
-    print 'Usage:'
-    print ''
-    print '  -h  -  Print help'
-    print '  -c  -  Configuration file Default: /etc/karaage/pbs-logger.cfg'
-    print '  -f  -  Specify log file eg. 20071225'
-    print '  -y  -  proccess yesterdays log file'
-    print '  -A  -  Read all log files'
-    print '  -d  -  Print Debug information'
-    print ''
+    print('Usage:')
+    print('')
+    print('  -h  -  Print help')
+    print('  -c  -  Configuration file Default: /etc/karaage3/pbs-logger.cfg')
+    print('  -f  -  Specify log file eg. 20071225')
+    print('  -y  -  proccess yesterdays log file')
+    print('  -A  -  Read all log files')
+    print('  -d  -  Print Debug information')
+    print('')
 
 
 def get_config(config_file):
-    
     try:
-        f = open(config_file)
+        open(config_file)
     except IOError:
         logger.error("No configuration found at %s" % config_file)
         sys.exit(1)
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
 
     config.read(config_file)
     cfg = {}
@@ -94,7 +115,7 @@ def get_config(config_file):
     except:
         logger.error("Failed to parse config")
         sys.exit(1)
-    
+
     return cfg
 
 
@@ -110,7 +131,7 @@ if __name__ == "__main__":
     if '-c' in opts:
         config_file = opts['-c']
     else:
-        config_file = '/etc/karaage/pbs-logger.cfg'
+        config_file = '/etc/karaage3/pbs-logger.cfg'
 
     cfg = get_config(config_file)
 
@@ -123,18 +144,20 @@ if __name__ == "__main__":
         file_list = os.listdir(cfg['LOG_DIR'])
 
         for filename in file_list:
-            date = datetime.date(int(filename[:4]), int(filename[4:6]), int(filename[6:]))
+            date = datetime.date(
+                int(filename[:4]), int(filename[4:6]), int(filename[6:]))
             parse_logs(date, cfg)
         sys.exit(0)
-         
-        
+
     if '-f' in opts:
         filename = opts['-f']
-        date = datetime.date(int(filename[:4]), int(filename[4:6]), int(filename[6:]))
+        date = datetime.date(
+            int(filename[:4]), int(filename[4:6]), int(filename[6:]))
     elif '-y' in opts:
         date = datetime.date.today() - datetime.timedelta(days=1)
     else:
         logger.error('You must specify either -f or -y')
+        sys.exit(1)
 
     parse_logs(date, cfg)
 

@@ -1,72 +1,52 @@
-from distutils.core import setup
-from distutils.command.install_data import install_data
-from distutils.command.install import INSTALL_SCHEMES
-import os
-import sys
+#!/usr/bin/env python
+# Copyright 208-2014 VPAC
+#
+# This file is part of python-alogger.
+#
+# python-alogger is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# python-alogger is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with python-alogger  If not, see <http://www.gnu.org/licenses/>.
 
-class osx_install_data(install_data):
-    # On MacOS, the platform-specific lib dir is /System/Library/Framework/Python/.../
-    # which is wrong. Python 2.5 supplied with MacOS 10.5 has an Apple-specific fix
-    # for this in distutils.command.install_data#306. It fixes install_lib but not
-    # install_data, which is why we roll our own install_data class.
+from setuptools import setup, find_packages
 
-    def finalize_options(self):
-        # By the time finalize_options is called, install.install_lib is set to the
-        # fixed directory, so we set the installdir to install_lib. The
-        # install_data class uses ('install_data', 'install_dir') instead.
-        self.set_undefined_options('install', ('install_lib', 'install_dir'))
-        install_data.finalize_options(self)
-
-if sys.platform == "darwin": 
-    cmdclasses = {'install_data': osx_install_data} 
-else: 
-    cmdclasses = {'install_data': install_data} 
-
-def fullsplit(path, result=None):
-    """
-    Split a pathname into components (the opposite of os.path.join) in a
-    platform-neutral way.
-    """
-    if result is None:
-        result = []
-    head, tail = os.path.split(path)
-    if head == '':
-        return [tail] + result
-    if head == path:
-        return result
-    return fullsplit(head, [tail] + result)
-
-# Tell distutils to put the data_files in platform-specific installation
-# locations. See here for an explanation:
-# http://groups.google.com/group/comp.lang.python/browse_thread/thread/35ec7b2fed36eaec/2105ee4d9e8042cb
-for scheme in INSTALL_SCHEMES.values():
-    scheme['data'] = scheme['purelib']
-
-data_files = []
-
-data_files.append(
-    ('/usr/sbin', ['sbin/kg-pbs-logger'])
-)
-
-data_files.append(
-    ('/etc/karaage', ['etc/pbs-logger.cfg', 'etc/logging.conf'])
-)
-data_files.append(
-    ('/etc/logrotate.d', ['logrotate.d/kg-pbs-logger'])
-)
-
-data_files.append(
-    ('/etc/cron.d', ['cron.d/kg-pbs-logger'])
-)
-
+with open('VERSION.txt', 'r') as f:
+    version = f.readline().strip()
 
 setup(
-    name = "karaage-pbs-logger",
-    version = '1.2',
-    url = 'http://code.vpac.org/trac/karaage/',
-    author = 'Sam Morrison',
-    author_email = 'sam@vpac.org',
-    description = 'PBS log sender for Karaage',
-    cmdclass = cmdclasses,
-    data_files = data_files,
+    name="karaage-cluster-tools",
+    version=version,
+    url='https://github.com/Karaage-Cluster/karaage-cluster-tools',
+    author='Brian May',
+    author_email='brian@v3.org.au',
+    description='Karaage cluster management tools',
+    packages=find_packages(),
+    license="GPL3+",
+    long_description=open('README.rst').read(),
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU Lesser General Public License v3 "
+        "or later (LGPLv3+)",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
+    keywords="karaage",
+    install_requires=['python-alogger', ],
+    data_files=[
+        ('/etc/karaage3', ['etc/pbs-logger.cfg', 'etc/logging.conf']),
+    ],
+    scripts=[
+        'sbin/kg-pbs-logger'
+    ],
 )

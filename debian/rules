@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+export PYBUILD_NAME=karaage-cluster-tools
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+.PHONY: override_dh_auto_test
+override_dh_auto_test:
+	./run_tests.sh
+
+.PHONY: override_dh_auto_install
+override_dh_auto_install:
+	dh_auto_install
