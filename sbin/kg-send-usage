@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+
+# Copyright 2011 VPAC
+#
+# This file is part of Karaage.
+#
+# Karaage is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Karaage is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Karaage  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import unicode_literals
+from __future__ import print_function
+
+try:
+    # Python 3
+    import xmlrpc.client as xmlrpclib
+except ImportError:
+    # Python 2
+    import xmlrpclib
+
+import datetime
+import sys
+import os
+import getopt
+
+try:
+    # Python 3
+    import configparser
+except ImportError:
+    # Python 2
+    import ConfigParser as configparser
+
+
+class UsageError(Exception):
+    pass
+
+
+def parse_logs(filename, date, cfg):
+
+    try:
+        f = open(os.path.join(cfg['LOG_DIR'], filename), 'r')
+    except IOError:
+        raise UsageError(
+            'Failed to open log file %s'
+            % os.path.join(cfg['LOG_DIR'], filename))
+    raw_data = f.readlines()
+    f.close()
+
+    data = []
+    for d in raw_data:
+        if cfg['TYPE'] == 'PBS' and d.find('resources_used.walltime') == -1:
+            continue
+        data.append(d)
+
+    if len(data) > 0:
+        server = xmlrpclib.Server(cfg['WS_URL'])
+
+        summary, output = server.parse_usage(
+            cfg['WS_USERNAME'], cfg['WS_PASSWORD'],
+            data, str(date), cfg['MACHINE_NAME'], cfg['TYPE'])
+
+        print(summary)
+        for line in output:
+            print(line)
+
+
+def print_help():
+    print('Usage:', file=sys.stderr)
+    print('', file=sys.stderr)
+    print('  -h  -  Print help.', file=sys.stderr)
+    print('  -c  -  Configuration file.', file=sys.stderr)
+    print('         Default: /etc/karaage3/kg-send-usage.cfg',
+          file=sys.stderr)
+    print('  -f  -  Specify log file.', file=sys.stderr)
+    print('  -y  -  proccess yesterdays log file.', file=sys.stderr)
+    print('  -A  -  Read all log files.', file=sys.stderr)
+    print('', file=sys.stderr)
+    print('Log files must be named YYYMMDD.', file=sys.stderr)
+    print('', file=sys.stderr)
+
+
+def get_config(config_file):
+    try:
+        open(config_file)
+    except IOError:
+        raise UsageError("No configuration found at %s" % config_file)
+
+    config = configparser.RawConfigParser()
+
+    config.read(config_file)
+    cfg = {}
+    try:
+        cfg['MACHINE_NAME'] = config.get('kg-send-usage', 'machine_name')
+        cfg['TYPE'] = config.get('kg-send-usage', 'type')
+        cfg['LOG_DIR'] = config.get('kg-send-usage', 'log_dir')
+
+        cfg['WS_URL'] = config.get('karaage', 'url')
+        cfg['WS_USERNAME'] = config.get('karaage', 'username')
+        cfg['WS_PASSWORD'] = config.get('karaage', 'password')
+    except:
+        raise UsageError("Failed to parse config at %s" % config_file)
+
+    return cfg
+
+
+if __name__ == "__main__":
+
+    opts, args = getopt.getopt(sys.argv[1:], 'yc:Ahdf:')
+    opts = dict(opts)
+
+    if not opts or '-h' in opts:
+        print_help()
+        sys.exit(1)
+
+    if '-c' in opts:
+        config_file = opts['-c']
+    else:
+        config_file = '/etc/karaage3/karaage-cluster-tools.cfg'
+
+    try:
+        cfg = get_config(config_file)
+
+        if '-A' in opts:
+            file_list = os.listdir(cfg['LOG_DIR'])
+
+            for filename in file_list:
+                date = datetime.date(
+                    int(filename[:4]), int(filename[4:6]), int(filename[6:]))
+                parse_logs(filename, date, cfg)
+
+        elif '-f' in opts:
+            filename = opts['-f']
+            date = datetime.date(
+                int(filename[:4]), int(filename[4:6]), int(filename[6:]))
+            parse_logs(filename, date, cfg)
+
+        elif '-y' in opts:
+            date = datetime.date.today() - datetime.timedelta(days=1)
+            filename = date.strftime('%Y%m%d')
+            parse_logs(filename, date, cfg)
+
+        else:
+            raise UsageError('You must specify either -A, -f or -y')
+
+    except UsageError as e:
+        print("Error: %s" % e, file=sys.stderr)
+        sys.exit(1)
+
+    sys.exit(0)

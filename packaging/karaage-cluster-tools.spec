@@ -50,12 +50,7 @@ rm -rf %{buildroot}
 %endif # with_python3
 
 mkdir -p $RPM_BUILD_ROOT/etc/cron.d
-cp debian/karaage-cluster-tools.cron.d $RPM_BUILD_ROOT/etc/cron.d/karaage-cluster-management
-
-mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
-cp debian/karaage-cluster-tools.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/karaage-cluster-management
-
-mkdir -p $RPM_BUILD_ROOT/var/log/karaage3
+cp debian/karaage-cluster-tools.cron.d $RPM_BUILD_ROOT/etc/cron.d/karaage-cluster-tools
 
 %check
 
@@ -72,9 +67,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %config(noreplace) /etc/cron.d/*
-%config(noreplace) /etc/logrotate.d/*
 %config(noreplace) /etc/karaage3/*
-/var/log/karaage3
 /usr/bin/*
 %if 0%{?with_python3}
 %{python3_sitelib}/*

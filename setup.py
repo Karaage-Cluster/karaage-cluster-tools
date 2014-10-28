@@ -44,9 +44,9 @@ setup(
     keywords="karaage",
     install_requires=['python-alogger', ],
     data_files=[
-        ('/etc/karaage3', ['etc/pbs-logger.cfg', 'etc/logging.conf']),
+        ('/etc/karaage3', ['etc/karaage-cluster-tools.cfg', ]),
     ],
     scripts=[
-        'sbin/kg-pbs-logger'
+        'sbin/kg-send-usage'
     ],
 )
