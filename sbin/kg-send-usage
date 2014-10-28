@@ -114,7 +114,7 @@ if __name__ == "__main__":
         help="Read all log files.")
     group.add_argument(
         "--yesterday", "-y", action="store_true",
-        help="Porcess yesterday's log file.")
+        help="Process yesterday's log file.")
     group.add_argument(
         "--filename", "-f",
         help="Log file to read.")
