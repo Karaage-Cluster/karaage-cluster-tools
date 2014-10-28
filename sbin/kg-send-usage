@@ -30,7 +30,7 @@ except ImportError:
 import datetime
 import sys
 import os
-import getopt
+import argparse
 
 try:
     # Python 3
@@ -73,21 +73,6 @@ def parse_logs(filename, date, cfg):
             print(line)
 
 
-def print_help():
-    print('Usage:', file=sys.stderr)
-    print('', file=sys.stderr)
-    print('  -h  -  Print help.', file=sys.stderr)
-    print('  -c  -  Configuration file.', file=sys.stderr)
-    print('         Default: /etc/karaage3/kg-send-usage.cfg',
-          file=sys.stderr)
-    print('  -f  -  Specify log file.', file=sys.stderr)
-    print('  -y  -  proccess yesterdays log file.', file=sys.stderr)
-    print('  -A  -  Read all log files.', file=sys.stderr)
-    print('', file=sys.stderr)
-    print('Log files must be named YYYMMDD.', file=sys.stderr)
-    print('', file=sys.stderr)
-
-
 def get_config(config_file):
     try:
         open(config_file)
@@ -114,22 +99,34 @@ def get_config(config_file):
 
 if __name__ == "__main__":
 
-    opts, args = getopt.getopt(sys.argv[1:], 'yc:Ahdf:')
-    opts = dict(opts)
+    parser = argparse.ArgumentParser(
+        description="Send usage logs to Karaage",
+        epilog='Log files must be named YYYMMDD.')
 
-    if not opts or '-h' in opts:
-        print_help()
-        sys.exit(1)
+    parser.add_argument(
+        "--config", "-c",
+        default="/etc/karaage3/karaage-cluster-tools.cfg",
+        help='Configuration file')
 
-    if '-c' in opts:
-        config_file = opts['-c']
-    else:
-        config_file = '/etc/karaage3/karaage-cluster-tools.cfg'
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--all", "-a", action="store_true",
+        help="Read all log files.")
+    group.add_argument(
+        "--yesterday", "-y", action="store_true",
+        help="Porcess yesterday's log file.")
+    group.add_argument(
+        "--filename", "-f",
+        help="Log file to read.")
+
+    args = parser.parse_args()
+
+    config_file = args.config
 
     try:
         cfg = get_config(config_file)
 
-        if '-A' in opts:
+        if args.all:
             file_list = os.listdir(cfg['LOG_DIR'])
 
             for filename in file_list:
@@ -137,19 +134,19 @@ if __name__ == "__main__":
                     int(filename[:4]), int(filename[4:6]), int(filename[6:]))
                 parse_logs(filename, date, cfg)
 
-        elif '-f' in opts:
-            filename = opts['-f']
-            date = datetime.date(
-                int(filename[:4]), int(filename[4:6]), int(filename[6:]))
-            parse_logs(filename, date, cfg)
-
-        elif '-y' in opts:
+        elif args.yesterday:
             date = datetime.date.today() - datetime.timedelta(days=1)
             filename = date.strftime('%Y%m%d')
             parse_logs(filename, date, cfg)
 
+        elif args.filename:
+            filename = args.filename
+            date = datetime.date(
+                int(filename[:4]), int(filename[4:6]), int(filename[6:]))
+            parse_logs(filename, date, cfg)
+
         else:
-            raise UsageError('You must specify either -A, -f or -y')
+            raise RuntimeError("oops. I mistake made.")
 
     except UsageError as e:
         print("Error: %s" % e, file=sys.stderr)
