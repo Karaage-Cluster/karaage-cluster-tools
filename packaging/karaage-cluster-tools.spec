@@ -18,6 +18,7 @@ Url: https://github.com/VPAC/pytsm/
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
+%{?el6:Requires: python-argparse}
 %if 0%{?with_python3}
 BuildRequires:  python3-devel, python3-setuptools, python3-six, python3-flake8
 %else
