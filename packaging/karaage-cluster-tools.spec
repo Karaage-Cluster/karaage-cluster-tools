@@ -8,7 +8,7 @@
 %global srcname karaage-cluster-tools
 
 Name: karaage-cluster-tools
-Version: 0.0.2
+Version: %(cat VERSION.txt)
 Release: 1%{?dist}
 Summary: Karaage cluster management tools
 
