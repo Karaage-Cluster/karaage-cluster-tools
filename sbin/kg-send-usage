@@ -30,6 +30,7 @@ except ImportError:
 import datetime
 import sys
 import os
+import json
 import argparse
 import logging
 
@@ -45,7 +46,9 @@ class UsageError(Exception):
     pass
 
 
-def parse_logs(date, cfg):
+def parse_logs_raw(date, cfg):
+    assert cfg['upload'] == 'raw'
+
     filename = date.strftime('%Y%m%d')
 
     try:
@@ -54,14 +57,29 @@ def parse_logs(date, cfg):
         raise UsageError(
             'Failed to open log file %s'
             % os.path.join(cfg['log_dir'], filename))
-    raw_data = f.readlines()
+
+    for line in f:
+        if cfg['upload'] == 'raw':
+            if cfg['type'] == 'PBS' \
+                    and line.find('resources_used.walltime') == -1:
+                continue
+            yield line
+
     f.close()
 
-    data = []
-    for d in raw_data:
-        if cfg['type'] == 'PBS' and d.find('resources_used.walltime') == -1:
-            continue
-        data.append(d)
+
+def parse_logs_alogger(date, cfg):
+    assert cfg['upload'] == 'alogger'
+
+    from alogger import get_parser
+    parser = get_parser(cfg['type'])
+
+    for d in parser.read_log(date, cfg):
+        yield json.dumps(d)
+
+
+def send_logs(data, log_type, cfg):
+    data = list(data)
 
     if len(data) > 0:
         server = xmlrpclib.Server(cfg['WS_URL'])
@@ -73,6 +91,21 @@ def parse_logs(date, cfg):
         print(summary)
         for line in output:
             print(line)
+
+
+def process_logs(date, cfg):
+    if cfg['upload'] == 'raw':
+        data = parse_logs_raw(date, cfg)
+        log_type = cfg['type']
+
+    elif cfg['upload'] == 'alogger':
+        data = parse_logs_alogger(date, cfg)
+        log_type = 'alogger'
+
+    else:
+        raise UsageError("Unknown upload type %s" % cfg['upload'])
+
+    send_logs(data, log_type, cfg)
 
 
 def get_config(config_file):
@@ -148,15 +181,15 @@ if __name__ == "__main__":
             for filename in file_list:
                 date = datetime.date(
                     int(filename[:4]), int(filename[4:6]), int(filename[6:]))
-                parse_logs(date, cfg)
+                process_logs(date, cfg)
 
         elif args.yesterday:
             date = datetime.date.today() - datetime.timedelta(days=1)
-            parse_logs(date, cfg)
+            process_logs(date, cfg)
 
         elif args.date:
             date = datetime.datetime.strptime(args.date, '%Y-%m-%d').date()
-            parse_logs(date, cfg)
+            process_logs(date, cfg)
 
         else:
             raise RuntimeError("oops. I mistake made.")
