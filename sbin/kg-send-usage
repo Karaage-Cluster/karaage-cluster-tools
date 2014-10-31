@@ -45,7 +45,8 @@ class UsageError(Exception):
     pass
 
 
-def parse_logs(filename, date, cfg):
+def parse_logs(date, cfg):
+    filename = date.strftime('%Y%m%d')
 
     try:
         f = open(os.path.join(cfg['log_dir'], filename), 'r')
@@ -126,8 +127,8 @@ if __name__ == "__main__":
         "--yesterday", "-y", action="store_true",
         help="Process yesterday's log file.")
     group.add_argument(
-        "--filename", "-f",
-        help="Log file to read.")
+        "--date", "-d",
+        help="Date to read.")
 
     args = parser.parse_args()
 
@@ -147,18 +148,15 @@ if __name__ == "__main__":
             for filename in file_list:
                 date = datetime.date(
                     int(filename[:4]), int(filename[4:6]), int(filename[6:]))
-                parse_logs(filename, date, cfg)
+                parse_logs(date, cfg)
 
         elif args.yesterday:
             date = datetime.date.today() - datetime.timedelta(days=1)
-            filename = date.strftime('%Y%m%d')
-            parse_logs(filename, date, cfg)
+            parse_logs(date, cfg)
 
-        elif args.filename:
-            filename = args.filename
-            date = datetime.date(
-                int(filename[:4]), int(filename[4:6]), int(filename[6:]))
-            parse_logs(filename, date, cfg)
+        elif args.date:
+            date = datetime.datetime.strptime(args.date, '%Y-%m-%d').date()
+            parse_logs(date, cfg)
 
         else:
             raise RuntimeError("oops. I mistake made.")
