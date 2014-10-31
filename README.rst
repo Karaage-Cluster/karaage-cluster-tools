@@ -5,3 +5,5 @@ the cluster.
 
 At the present time it will automatically upload usage data to karaage for
 processing with the karaage-usage plugin.
+
+For configuration, see the comments in /etc/karaage3/karaage-cluster-tools.cfg
