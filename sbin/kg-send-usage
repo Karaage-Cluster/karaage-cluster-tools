@@ -47,17 +47,17 @@ class UsageError(Exception):
 def parse_logs(filename, date, cfg):
 
     try:
-        f = open(os.path.join(cfg['LOG_DIR'], filename), 'r')
+        f = open(os.path.join(cfg['log_dir'], filename), 'r')
     except IOError:
         raise UsageError(
             'Failed to open log file %s'
-            % os.path.join(cfg['LOG_DIR'], filename))
+            % os.path.join(cfg['log_dir'], filename))
     raw_data = f.readlines()
     f.close()
 
     data = []
     for d in raw_data:
-        if cfg['TYPE'] == 'PBS' and d.find('resources_used.walltime') == -1:
+        if cfg['type'] == 'PBS' and d.find('resources_used.walltime') == -1:
             continue
         data.append(d)
 
@@ -66,7 +66,7 @@ def parse_logs(filename, date, cfg):
 
         summary, output = server.parse_usage(
             cfg['WS_USERNAME'], cfg['WS_PASSWORD'],
-            data, str(date), cfg['MACHINE_NAME'], cfg['TYPE'])
+            data, str(date), cfg['machine_name'], log_type)
 
         print(summary)
         for line in output:
@@ -84,9 +84,14 @@ def get_config(config_file):
     config.read(config_file)
     cfg = {}
     try:
-        cfg['MACHINE_NAME'] = config.get('kg-send-usage', 'machine_name')
-        cfg['TYPE'] = config.get('kg-send-usage', 'type')
-        cfg['LOG_DIR'] = config.get('kg-send-usage', 'log_dir')
+        for name, value in config.items("kg-send-usage"):
+            cfg[name] = value
+
+        if 'type' not in cfg:
+            cfg['type'] = 'PBS'
+
+        if 'upload' not in cfg:
+            cfg['upload'] = 'raw'
 
         cfg['WS_URL'] = config.get('karaage', 'url')
         cfg['WS_USERNAME'] = config.get('karaage', 'username')
@@ -127,7 +132,7 @@ if __name__ == "__main__":
         cfg = get_config(config_file)
 
         if args.all:
-            file_list = os.listdir(cfg['LOG_DIR'])
+            file_list = os.listdir(cfg['log_dir'])
 
             for filename in file_list:
                 date = datetime.date(
