@@ -31,6 +31,7 @@ import datetime
 import sys
 import os
 import argparse
+import logging
 
 try:
     # Python 3
@@ -109,6 +110,10 @@ if __name__ == "__main__":
         epilog='Log files must be named YYYMMDD.')
 
     parser.add_argument(
+        "--debug", action="store_true",
+        help="Print Debugging Messages")
+
+    parser.add_argument(
         "--config", "-c",
         default="/etc/karaage3/karaage-cluster-tools.cfg",
         help='Configuration file')
@@ -125,6 +130,11 @@ if __name__ == "__main__":
         help="Log file to read.")
 
     args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
 
     config_file = args.config
 
