@@ -8,7 +8,8 @@ export PYBUILD_NAME=karaage-cluster-tools
 
 .PHONY: override_dh_auto_test
 override_dh_auto_test:
-	./run_tests.sh
+	flake8 .
+	python3 setup.py test
 
 .PHONY: override_dh_auto_install
 override_dh_auto_install:
