@@ -78,10 +78,10 @@ def parse_logs_alogger(date, cfg):
         yield json.dumps(d)
 
 
-def send_logs(data, log_type, cfg):
+def send_logs(data, log_type, cfg, dry_run):
     data = list(data)
 
-    if len(data) > 0:
+    if len(data) > 0 and not dry_run:
         server = xmlrpclib.Server(cfg['WS_URL'])
 
         summary, output = server.parse_usage(
@@ -93,7 +93,7 @@ def send_logs(data, log_type, cfg):
             print(line)
 
 
-def process_logs(date, cfg):
+def process_logs(date, cfg, dry_run):
     if cfg['upload'] == 'raw':
         data = parse_logs_raw(date, cfg)
         log_type = cfg['type']
@@ -105,7 +105,7 @@ def process_logs(date, cfg):
     else:
         raise UsageError("Unknown upload type %s" % cfg['upload'])
 
-    send_logs(data, log_type, cfg)
+    send_logs(data, log_type, cfg, dry_run)
 
 
 def get_config(config_file):
@@ -148,6 +148,10 @@ if __name__ == "__main__":
         help="Print Debugging Messages")
 
     parser.add_argument(
+        "--dry-run", action="store_true",
+        help="Don't send anything to the server.")
+
+    parser.add_argument(
         "--config", "-c",
         default="/etc/karaage3/karaage-cluster-tools.cfg",
         help='Configuration file')
@@ -181,15 +185,15 @@ if __name__ == "__main__":
             for filename in file_list:
                 date = datetime.date(
                     int(filename[:4]), int(filename[4:6]), int(filename[6:]))
-                process_logs(date, cfg)
+                process_logs(date, cfg, args.dry_run)
 
         elif args.yesterday:
             date = datetime.date.today() - datetime.timedelta(days=1)
-            process_logs(date, cfg)
+            process_logs(date, cfg, args.dry_run)
 
         elif args.date:
             date = datetime.datetime.strptime(args.date, '%Y-%m-%d').date()
-            process_logs(date, cfg)
+            process_logs(date, cfg, args.dry_run)
 
         else:
             raise RuntimeError("oops. I mistake made.")
