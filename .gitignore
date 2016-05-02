@@ -1,3 +1,11 @@
-build
+/karaage-cluster-tools/version.py
+/docs/conf.py
+/tmp/
+/.cache/
+/.eggs/
+/.tox/
+/build/
+/dist/
+/karaage_cluster_tools.egg-info/
 *.bak
 *.pyc

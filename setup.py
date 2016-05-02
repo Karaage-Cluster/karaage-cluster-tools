@@ -18,15 +18,15 @@
 
 from setuptools import setup, find_packages
 
-with open('VERSION.txt', 'r') as f:
-    version = f.readline().strip()
-
 setup(
     name="karaage-cluster-tools",
-    version=version,
+    use_scm_version={
+        'write_to': "karaage-cluster-tools/version.py",
+    },
+    setup_requires=['setuptools_scm'],
     url='https://github.com/Karaage-Cluster/karaage-cluster-tools',
     author='Brian May',
-    author_email='brian@v3.org.au',
+    author_email='brian@linuxpenguins.xyz',
     description='Karaage cluster management tools',
     packages=find_packages(),
     license="GPL3+",
@@ -43,9 +43,6 @@ setup(
     ],
     keywords="karaage",
     install_requires=['python-alogger', ],
-    data_files=[
-        ('/etc/karaage3', ['etc/karaage-cluster-tools.cfg', ]),
-    ],
     scripts=[
         'sbin/kg-send-usage'
     ],
