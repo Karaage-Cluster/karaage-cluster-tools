@@ -19,9 +19,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="karaage-cluster-tools",
+    name="karaage_cluster_tools",
     use_scm_version={
-        'write_to': "karaage-cluster-tools/version.py",
+        'write_to': "karaage_cluster_tools/version.py",
     },
     setup_requires=['setuptools_scm'],
     url='https://github.com/Karaage-Cluster/karaage-cluster-tools',

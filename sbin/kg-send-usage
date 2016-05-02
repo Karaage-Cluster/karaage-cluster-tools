@@ -20,6 +20,8 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import print_function
 
+from karaage_cluster_tools.version import version
+
 try:
     # Python 3
     import xmlrpc.client as xmlrpclib
@@ -142,6 +144,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Send usage logs to Karaage",
         epilog='Log files must be named YYYMMDD.')
+
+    parser.add_argument(
+        '--version', action='version', version='%(prog)s '+version)
 
     parser.add_argument(
         "--debug", action="store_true",

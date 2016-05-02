@@ -1,3 +1,9 @@
+Release 1.2.5 (UNRELEASED)
+==========================
+
+* Add --version command line option.
+
+
 Release 1.2.4 (02 Apr 2016)
 ===========================
 
