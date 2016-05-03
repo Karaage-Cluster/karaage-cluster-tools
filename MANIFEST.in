@@ -6,7 +6,6 @@ include *.rst
 include *.sh
 include *.txt
 exclude karaage_cluster_tools/version.py
-recursive-include packaging *.spec
 recursive-include sbin *
 recursive-include etc *
 recursive-include cron.d *
