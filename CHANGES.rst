@@ -1,3 +1,9 @@
+Release 1.2.6 (11 May 2016)
+===========================
+
+* Ensure version.py gets packages.
+
+
 Release 1.2.5 (03 May 2016)
 ===========================
 
